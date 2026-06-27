@@ -1,1 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure Web App + SQL Database — Prasanthi Kumari</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #0F2A52;
+    --blue: #1A56DB;
+    --blue-light: #EBF2FF;
+    --blue-mid: #BFDBFE;
+    --text: #111827;
+    --text-muted: #6B7280;
+    --border: #E5E7EB;
+    --bg: #FAFAFA;
+    --white: #FFFFFF;
+    --green: #065F46;
+    --green-bg: #D1FAE5;
+    --tag-bg: #EFF6FF;
+    --tag-text: #1E40AF;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; font-size: 15px; }
+
+  nav { position: sticky; top: 0; background: rgba(250,250,250,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); z-index: 100; padding: 0 2rem; }
+  .nav-inner { max-width: 860px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+  .nav-logo { font-size: 14px; font-weight: 600; color: var(--navy); font-family: 'DM Mono', monospace; }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a { font-size: 13px; color: var(--text-muted); text-decoration: none; font-weight: 500; }
+  .nav-links a:hover { color: var(--blue); }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 0 2rem; }
+  section { padding: 60px 0; border-top: 1px solid var(--border); }
+
+  .hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); }
+  .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--green-bg); color: var(--green); font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 99px; margin-bottom: 20px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .hero-tag span { width: 6px; height: 6px; background: #10B981; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; color: var(--navy); line-height: 1.2; margin-bottom: 16px; letter-spacing: -0.02em; }
+  .hero-sub { font-size: 16px; color: var(--text-muted); max-width: 560px; margin-bottom: 28px; line-height: 1.7; }
+  .hero-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
+  .badge { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 7px; }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+  .badge.cert { border-color: var(--blue-mid); background: var(--blue-light); color: var(--tag-text); font-family: 'DM Mono', monospace; font-size: 12px; }
+  .btn { padding: 11px 22px; border-radius: 8px; font-size: 14px; font-weight: 500; text-decoration: none; transition: all 0.2s; display: inline-block; }
+  .btn-primary { background: var(--navy); color: #fff; border: 1px solid var(--navy); }
+  .btn-primary:hover { background: var(--blue); border-color: var(--blue); }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); margin-left: 10px; }
+  .btn-outline:hover { border-color: var(--navy); color: var(--navy); }
+
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); margin-bottom: 24px; font-family: 'DM Mono', monospace; }
+
+  /* SERVICES TABLE */
+  .services-table { width: 100%; border-collapse: collapse; }
+  .services-table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 14px; background: var(--blue-light); }
+  .services-table td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--border); color: var(--text); }
+  .services-table tr:last-child td { border-bottom: none; }
+  .status-done { color: #065F46; font-weight: 500; }
+  .status-planned { color: var(--text-muted); }
+
+  /* ARCHITECTURE */
+  .arch-box { background: var(--navy); border-radius: 12px; padding: 28px; font-family: 'DM Mono', monospace; font-size: 13px; color: rgba(255,255,255,0.85); line-height: 2; }
+  .arch-service { color: #93C5FD; font-weight: 500; }
+  .arch-arrow { color: rgba(255,255,255,0.4); }
+
+  /* STEPS */
+  .steps { list-style: none; }
+  .steps li { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+  .steps li:last-child { border-bottom: none; }
+  .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--blue-light); color: var(--blue); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-text { font-size: 13px; color: var(--text); line-height: 1.55; }
+  .step-text strong { color: var(--navy); }
+
+  /* LEARNINGS */
+  .learn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .learn-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .learn-card .icon { font-size: 20px; margin-bottom: 8px; }
+  .learn-card h3 { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .learn-card p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* CONTACT */
+  .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .contact-item { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .contact-item:hover { border-color: var(--blue); }
+  .contact-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+  .contact-value { font-size: 13px; font-weight: 500; color: var(--navy); }
+
+  footer { background: var(--navy); color: rgba(255,255,255,0.5); text-align: center; padding: 24px; font-size: 13px; }
+  footer strong { color: rgba(255,255,255,0.9); }
+
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s, transform 0.5s; }
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  @media(max-width:600px) { .hero { padding: 48px 0 36px; } .nav-links { display: none; } section { padding: 40px 0; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <span class="nav-logo">PK.cloud — Project 3</span>
+    <div class="nav-links">
+      <a href="#services">Services</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#steps">Steps</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- HERO -->
+  <section class="hero fade-in">
+    <div class="hero-tag"><span></span> AZ-104 Hands-on Project</div>
+    <h1>Azure Static Web App<br>+ SQL Database</h1>
+    <p class="hero-sub">Deployed a web application on Azure Static Web Apps connected to Azure SQL Database via secure connection strings — demonstrating cloud app deployment, database management, and CI/CD using GitHub.</p>
+    <div class="hero-badges">
+      <div class="badge cert">🎖 Microsoft AZ-104 — 2025</div>
+      <div class="badge"><span class="dot"></span> Azure Static Web Apps</div>
+      <div class="badge"><span class="dot"></span> Azure SQL Database</div>
+      <div class="badge"><span class="dot"></span> GitHub CI/CD</div>
+    </div>
+    <div>
+      <a href="https://github.com/PrasanthiRaghupatruni/azure-appservice-sql" target="_blank" class="btn btn-primary">View on GitHub</a>
+      <a href="https://www.linkedin.com/in/prasanthi-raghupatruni-500503203" target="_blank" class="btn btn-outline">LinkedIn</a>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services" class="fade-in">
+    <p class="section-label">// Azure Services Used</p>
+    <table class="services-table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Purpose</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Azure Static Web Apps</strong></td>
+          <td>Hosts the web application — free tier, global CDN</td>
+          <td class="status-done">✅ Deployed</td>
+        </tr>
+        <tr>
+          <td><strong>Azure SQL Database</strong></td>
+          <td>Managed relational database — Basic tier, 2GB storage</td>
+          <td class="status-done">✅ Deployed</td>
+        </tr>
+        <tr>
+          <td><strong>Azure SQL Server</strong></td>
+          <td>Hosts the SQL Database with Entra authentication</td>
+          <td class="status-done">✅ Configured</td>
+        </tr>
+        <tr>
+          <td><strong>Connection Strings</strong></td>
+          <td>Securely links the web app to the SQL Database</td>
+          <td class="status-done">✅ Configured</td>
+        </tr>
+        <tr>
+          <td><strong>GitHub Actions (CI/CD)</strong></td>
+          <td>Auto-deploys code changes from GitHub to Azure</td>
+          <td class="status-done">✅ Active</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture" class="fade-in">
+    <p class="section-label">// Architecture</p>
+    <div class="arch-box">
+      <div><span class="arch-service">User Browser</span></div>
+      <div><span class="arch-arrow">      ↓</span></div>
+      <div><span class="arch-service">Azure Static Web Apps</span> (Global CDN + HTTPS)</div>
+      <div><span class="arch-arrow">      ↓</span></div>
+      <div><span class="arch-service">GitHub Actions</span> (CI/CD pipeline — auto deploy)</div>
+      <div><span class="arch-arrow">      ↓</span></div>
+      <div><span class="arch-service">Connection String</span> (SQLAzure — secure env variable)</div>
+      <div><span class="arch-arrow">      ↓</span></div>
+      <div><span class="arch-service">Azure SQL Database</span> (Basic tier — anuportfolio-db)</div>
+      <div><span class="arch-arrow">      ↓</span></div>
+      <div><span class="arch-service">Azure SQL Server</span> (anuserver-db — Entra auth)</div>
+    </div>
+  </section>
+
+  <!-- STEPS -->
+  <section id="steps" class="fade-in">
+    <p class="section-label">// Steps I Followed</p>
+    <ul class="steps">
+      <li>
+        <span class="step-num">1</span>
+        <span class="step-text"><strong>Created Azure SQL Database</strong> — provisioned Basic tier (5 DTUs, 2GB) with Microsoft Entra authentication and public endpoint networking</span>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <span class="step-text"><strong>Created Azure Static Web App</strong> — Free tier, connected to GitHub repository for automatic CI/CD deployments</span>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <span class="step-text"><strong>Configured GitHub Actions</strong> — Azure auto-generated a workflow file that deploys every code push to the live URL</span>
+      </li>
+      <li>
+        <span class="step-num">4</span>
+        <span class="step-text"><strong>Added Connection String</strong> — configured SQLAzure connection string in Static Web App settings to securely link the app to the database</span>
+      </li>
+      <li>
+        <span class="step-num">5</span>
+        <span class="step-text"><strong>Deployed and verified</strong> — confirmed live URL, GitHub Actions workflow, and connection string configuration</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- LEARNINGS -->
+  <section class="fade-in">
+    <p class="section-label">// What I Learned</p>
+    <div class="learn-grid">
+      <div class="learn-card">
+        <div class="icon">☁️</div>
+        <h3>Azure Static Web Apps</h3>
+        <p>Modern hosting service with built-in global CDN, free SSL, and GitHub CI/CD integration — no server management needed</p>
+      </div>
+      <div class="learn-card">
+        <div class="icon">🗄️</div>
+        <h3>Azure SQL Database</h3>
+        <p>DTU-based pricing model, Basic vs Standard vs Premium tiers, Entra authentication vs SQL auth, networking configuration</p>
+      </div>
+      <div class="learn-card">
+        <div class="icon">🔗</div>
+        <h3>Connection Strings</h3>
+        <p>How to securely connect a web application to a database using environment variables — industry best practice</p>
+      </div>
+      <div class="learn-card">
+        <div class="icon">⚡</div>
+        <h3>CI/CD with GitHub</h3>
+        <p>GitHub Actions automatically deploys every code change to Azure — how modern DevOps pipelines work in practice</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="fade-in">
+    <p class="section-label">// Author</p>
+    <div class="contact-grid">
+      <a href="mailto:nagaprasanthi13@gmail.com" class="contact-item">
+        <span style="font-size:18px">✉️</span>
+        <div>
+          <div class="contact-label">Email</div>
+          <div class="contact-value">nagaprasanthi13@gmail.com</div>
+        </div>
+      </a>
+      <a href="https://www.linkedin.com/in/prasanthi-raghupatruni-500503203" target="_blank" class="contact-item">
+        <span style="font-size:18px">💼</span>
+        <div>
+          <div class="contact-label">LinkedIn</div>
+          <div class="contact-value">Prasanthi Raghupatruni</div>
+        </div>
+      </a>
+      <a href="https://github.com/PrasanthiRaghupatruni/azure-appservice-sql" target="_blank" class="contact-item">
+        <span style="font-size:18px">💻</span>
+        <div>
+          <div class="contact-label">GitHub</div>
+          <div class="contact-value">azure-appservice-sql</div>
+        </div>
+      </a>
+      <div class="contact-item">
+        <span style="font-size:18px">📍</span>
+        <div>
+          <div class="contact-label">Location</div>
+          <div class="contact-value">Hyderabad, India</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Built & hosted on <strong>Microsoft Azure Static Web Apps</strong> &nbsp;·&nbsp; Connected to <strong>Azure SQL Database</strong> &nbsp;·&nbsp; © 2025 <strong>Prasanthi Kumari</strong>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
 
